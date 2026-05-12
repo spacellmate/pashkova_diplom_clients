@@ -8,6 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "data.db")))
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me-please")
 
+DEFAULT_VISIT_COUNT = 70812
+DEFAULT_ORDER_COUNT = 2212
+
 app = Flask(__name__, template_folder="templates")
 
 
@@ -39,10 +42,10 @@ def init_db():
         )
     """)
 
-    cur.execute("""
-        INSERT OR IGNORE INTO counters (key, value)
-        VALUES ('visits', 127)
-    """)
+    cur.execute(
+        "INSERT OR IGNORE INTO counters (key, value) VALUES ('visits', ?)",
+        (DEFAULT_VISIT_COUNT,)
+    )
 
     conn.commit()
     conn.close()
@@ -65,10 +68,10 @@ def get_visit_count():
     cur.execute("SELECT value FROM counters WHERE key = 'visits'")
     row = cur.fetchone()
     conn.close()
-    return row["value"] if row else 127
+    return row["value"] if row else DEFAULT_VISIT_COUNT
 
 
-def get_orders_count():
+def get_real_leads_count():
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) AS cnt FROM leads")
@@ -77,10 +80,15 @@ def get_orders_count():
     return row["cnt"] if row else 0
 
 
+def get_display_order_count():
+    real_count = get_real_leads_count()
+    return max(DEFAULT_ORDER_COUNT, real_count)
+
+
 @app.route("/")
 def index():
     visit_count = increment_visits()
-    order_count = get_orders_count()
+    order_count = get_display_order_count()
     return render_template(
         "klient-no-x5.html",
         visit_count=visit_count,
@@ -127,9 +135,10 @@ def admin_leads():
         ORDER BY id DESC
     """)
     leads = cur.fetchall()
-    visit_count = get_visit_count()
-    order_count = len(leads)
     conn.close()
+
+    visit_count = get_visit_count()
+    order_count = max(DEFAULT_ORDER_COUNT, len(leads))
 
     rows = []
     for lead in leads:
@@ -166,7 +175,9 @@ def admin_leads():
                 border-radius: 16px;
                 box-shadow: 0 8px 30px rgba(0,0,0,.08);
             }}
-            h1 {{ margin-top: 0; }}
+            h1 {{
+                margin-top: 0;
+            }}
             .meta {{
                 margin-bottom: 20px;
                 color: #555;
@@ -186,8 +197,12 @@ def admin_leads():
                 font-size: 14px;
                 vertical-align: top;
             }}
-            th {{ background: #f0f0f0; }}
-            tr:nth-child(even) {{ background: #fafafa; }}
+            th {{
+                background: #f0f0f0;
+            }}
+            tr:nth-child(even) {{
+                background: #fafafa;
+            }}
         </style>
     </head>
     <body>
@@ -196,6 +211,7 @@ def admin_leads():
             <div class="meta">
                 <div>Всего визитов: <strong>{visit_count}</strong></div>
                 <div>Всего заказов: <strong>{order_count}</strong></div>
+                <div>Реальных заявок в базе: <strong>{len(leads)}</strong></div>
             </div>
             <table>
                 <thead>
