@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Свой Повар — сервис домашней еды</title>
+<meta name="description" content="Домашняя еда от проверенных поваров с доставкой в Москве. Персонализированное питание под ваши цели — КБЖУ, аллергии, вкусовые предпочтения.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--font-display:'Playfair Display',Georgia,serif;
+--font-body:'Inter','Helvetica Neue',sans-serif;
+--color-bg:#f5f2ec;
+--color-surface:#faf9f6;
+--color-surface-2:#ffffff;
+--color-surface-offset:#eeebe4;
+--color-border:#ddd9d0;
+--color-divider:#e5e1d8;
+--color-text:#1a1a14;
+--color-text-muted:#6b6960;
+--color-text-faint:#b0ad a5;
+--color-primary:#1a6b3a;
+--color-primary-hover:#145730;
+--color-primary-light:#e8f5ee;
+--color-accent:#2d6a4f;
+--color-accent-light:#e6f4ed;
+--text-xs:clamp(.75rem,.7rem + .25vw,.875rem);
+--text-sm:clamp(.875rem,.8rem + .35vw,1rem);
+--text-base:clamp(1rem,.95rem + .25vw,1.125rem);
+--text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);
+--text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
+--text-2xl:clamp(2rem,1.2rem + 2.5vw,3.5rem);
+--space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;
+--space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;
+--space-12:3rem;--space-14:3.5rem;--space-16:4rem;--space-20:5rem;
+--radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;
+--radius-xl:1rem;--radius-2xl:1.5rem;--radius-full:9999px;
+--shadow-sm:0 1px 3px rgba(26,26,20,.07),0 1px 2px rgba(26,26,20,.05);
+--shadow-md:0 4px 12px rgba(26,26,20,.08),0 2px 6px rgba(26,26,20,.05);
+--shadow-lg:0 12px 32px rgba(26,26,20,.1),0 4px 12px rgba(26,26,20,.06);
+--transition:180ms cubic-bezier(.16,1,.3,1);
+--content-default:960px;--content-wide:1200px
+}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;scroll-padding-top:5rem}
+body{font-family:var(--font-body);font-size:var(--text-base);color:var(--color-text);background:var(--color-bg);line-height:1.6;min-height:100dvh}
+img,video{display:block;max-width:100%;height:auto}
+h1,h2,h3,h4{font-family:var(--font-display);line-height:1.15;text-wrap:balance}
+p,li{text-wrap:pretty;max-width:72ch}
+button,a{cursor:pointer;transition:color var(--transition),background var(--transition),border-color var(--transition),box-shadow var(--transition),transform var(--transition)}
+button{background:none;border:none;font:inherit;color:inherit}
+ul[role=list]{list-style:none}
+:focus-visible{outline:2px solid var(--color-primary);outline-offset:3px;border-radius:var(--radius-sm)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(245,242,236,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--color-border)}
+.nav-inner{max-width:var(--content-wide);margin:0 auto;padding:0 var(--space-6);display:flex;align-items:center;gap:var(--space-4);height:4rem}
+.nav-logo{display:flex;align-items:center;gap:var(--space-3);text-decoration:none;color:var(--color-text)}
+.nav-logo-icon{width:36px;height:36px;background:var(--color-primary);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-logo-icon svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav-logo-text{display:flex;flex-direction:column;line-height:1.1}
+.nav-logo-name{font-family:var(--font-display);font-weight:700;font-size:var(--text-lg);color:var(--color-primary)}
+.nav-logo-sub{font-size:var(--text-xs);color:var(--color-text-muted)}
+.nav-links{display:flex;align-items:center;gap:var(--space-6);margin-left:auto;list-style:none}
+@media(max-width:768px){.nav-links{display:none}}
+.nav-link{text-decoration:none;font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted)}
+.nav-link:hover{color:var(--color-primary)}
+.nav-cta{margin-left:var(--space-6);background:var(--color-primary);color:#fff;padding:var(--space-2) var(--space-5);border-radius:var(--radius-full);font-size:var(--text-sm);font-weight:600;text-decoration:none;white-space:nowrap}
+.nav-cta:hover{background:var(--color-primary-hover);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.nav-theme{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--color-text-muted)}
+.nav-theme:hover{background:var(--color-surface-offset);color:var(--color-text)}
+
+/* HERO */
+.hero{position:relative;min-height:clamp(420px,70vh,680px);display:flex;align-items:center;overflow:hidden;background:#1a2818}
+.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,30,15,.75) 0%,rgba(10,30,15,.35) 60%,transparent 100%)}
+.hero-content{position:relative;z-index:2;max-width:var(--content-wide);margin:0 auto;padding:clamp(var(--space-16),10vw,var(--space-20)) var(--space-6);width:100%}
+.hero-badge{display:inline-flex;align-items:center;gap:var(--space-2);background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);border-radius:var(--radius-full);padding:var(--space-2) var(--space-4);font-size:var(--text-xs);color:rgba(255,255,255,.9);margin-bottom:var(--space-6)}
+.hero-badge-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+.hero-title{font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;color:#fff;margin-bottom:var(--space-4);max-width:18ch;line-height:1.1}
+.hero-title em{font-style:normal;color:#86efac}
+.hero-sub{font-size:var(--text-base);color:rgba(255,255,255,.8);max-width:48ch;margin-bottom:var(--space-8);line-height:1.65}
+.hero-actions{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center}
+.btn{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-6);border-radius:var(--radius-full);font-size:var(--text-sm);font-weight:600;text-decoration:none;border:none;cursor:pointer;white-space:nowrap}
+.btn-primary{background:var(--color-primary);color:#fff}
+.btn-primary:hover{background:var(--color-primary-hover);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,107,58,.4)}
+.btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(8px)}
+.btn-ghost:hover{background:rgba(255,255,255,.2)}
+.hero-trust{display:flex;flex-wrap:wrap;gap:var(--space-6);margin-top:var(--space-10)}
+.hero-trust-item{display:flex;flex-direction:column;gap:2px}
+.hero-trust-num{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:#fff;line-height:1}
+.hero-trust-label{font-size:var(--text-xs);color:rgba(255,255,255,.6)}
+
+/* SECTIONS */
+.section-label{font-size:var(--text-xs);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--color-primary);margin-bottom:var(--space-3)}
+.section-title{font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-4);color:var(--color-text)}
+.section-sub{font-size:var(--text-base);color:var(--color-text-muted);max-width:52ch;line-height:1.65}
+.section-header{text-align:center;margin-bottom:clamp(var(--space-10),5vw,var(--space-14))}
+.section-header .section-sub{margin:0 auto}
+
+/* HOW IT WORKS */
+.section-how{padding-block:clamp(var(--space-12),8vw,var(--space-20));background:var(--color-surface)}
+.how-grid{max-width:var(--content-default);margin:0 auto;padding-inline:var(--space-6);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:var(--space-8)}
+.how-step{display:flex;flex-direction:column;gap:var(--space-4)}
+.how-step-num{width:48px;height:48px;background:var(--color-primary-light);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--color-primary)}
+.how-step-title{font-size:var(--text-base);font-weight:600}
+.how-step-text{font-size:var(--text-sm);color:var(--color-text-muted);line-height:1.65}
+
+/* CHEFS */
+.section-chefs{padding-block:clamp(var(--space-12),8vw,var(--space-20));background:var(--color-bg)}
+.chefs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:var(--space-8);margin-top:clamp(var(--space-10),5vw,var(--space-14))}
+.chef-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow var(--transition),transform var(--transition)}
+.chef-card:hover{box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.chef-photo-wrap{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--color-surface-offset)}
+.chef-photo{width:100%;height:100%;object-fit:cover;transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.chef-card:hover .chef-photo{transform:scale(1.04)}
+.chef-badge{position:absolute;bottom:var(--space-4);left:var(--space-4);background:rgba(15,20,10,.78);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-full);padding:var(--space-2) var(--space-4);display:flex;align-items:center;gap:var(--space-2);color:#fff}
+.chef-badge-star{color:#f0c840;font-size:var(--text-sm)}
+.chef-badge-rating{font-size:var(--text-sm);font-weight:600}
+.chef-badge-count{font-size:var(--text-xs);color:rgba(255,255,255,.65)}
+.chef-info{padding:var(--space-6)}
+.chef-name{font-size:var(--text-lg);font-weight:700;margin-bottom:var(--space-1)}
+.chef-meta{font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-4)}
+.chef-meta span{color:var(--color-primary)}
+.chef-tags{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-4)}
+.chef-tag{background:var(--color-primary-light);color:var(--color-primary);border-radius:var(--radius-full);padding:var(--space-1) var(--space-3);font-size:var(--text-xs);font-weight:500}
+.chef-tag-accent{background:var(--color-accent-light);color:var(--color-accent)}
+.chef-quote{font-size:var(--text-sm);color:var(--color-text-muted);line-height:1.65;font-style:italic;border-left:2px solid var(--color-divider);padding-left:var(--space-4)}
+
+/* MENU */
+.section-menu{padding-block:clamp(var(--space-12),8vw,var(--space-20));background:var(--color-surface)}
+.menu-filter{display:flex;flex-wrap:wrap;gap:var(--space-2);justify-content:center;margin-bottom:clamp(var(--space-8),4vw,var(--space-12))}
+.menu-filter-btn{padding:var(--space-2) var(--space-5);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:600;border:1.5px solid var(--color-border);color:var(--color-text-muted);background:var(--color-surface-2)}
+.menu-filter-btn:hover,.menu-filter-btn.active{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:var(--space-6)}
+.dish-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow var(--transition),transform var(--transition)}
+.dish-card:hover{box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.dish-img-wrap{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--color-surface-offset)}
+.dish-img{width:100%;height:100%;object-fit:cover;transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.dish-card:hover .dish-img{transform:scale(1.05)}
+.dish-info{padding:var(--space-4)}
+.dish-name{font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-1)}
+.dish-macros{font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-3);line-height:1.5}
+.dish-footer{display:flex;align-items:center;justify-content:space-between}
+.dish-price{font-size:var(--text-base);font-weight:700;color:var(--color-primary)}
+.dish-chef{font-size:var(--text-xs);color:var(--color-text-muted)}
+
+/* WHY */
+.section-why{padding-block:clamp(var(--space-12),8vw,var(--space-20));background:var(--color-bg)}
+.why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:var(--space-6)}
+.why-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-6);box-shadow:var(--shadow-sm)}
+.why-icon{width:44px;height:44px;background:var(--color-primary-light);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-4)}
+.why-icon svg{width:22px;height:22px;stroke:var(--color-primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.why-title{font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-2)}
+.why-text{font-size:var(--text-sm);color:var(--color-text-muted);line-height:1.65}
+
+/* REVIEWS */
+.section-reviews{padding-block:clamp(var(--space-12),8vw,var(--space-20));background:var(--color-surface)}
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:var(--space-6)}
+.review-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-6);box-shadow:var(--shadow-sm)}
+.review-stars{color:#f0c840;font-size:var(--text-sm);margin-bottom:var(--space-3);letter-spacing:.05em}
+.review-text{font-size:var(--text-sm);color:var(--color-text);line-height:1.7;margin-bottom:var(--space-4);font-style:italic}
+.review-author{display:flex;align-items:center;gap:var(--space-3)}
+.review-avatar{width:36px;height:36px;border-radius:50%;background:var(--color-primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:var(--text-xs);color:var(--color-primary);flex-shrink:0}
+.review-name{font-size:var(--text-sm);font-weight:600}
+.review-date{font-size:var(--text-xs);color:var(--color-text-muted)}
+
+/* CTA */
+.section-cta{padding-block:clamp(var(--space-12),8vw,var(--space-20));background:var(--color-primary)}
+.cta-inner{max-width:640px;margin:0 auto;padding-inline:var(--space-6);text-align:center}
+.cta-label{font-size:var(--text-xs);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:var(--space-3)}
+.cta-title{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:#fff;margin-bottom:var(--space-4);line-height:1.15}
+.cta-sub{font-size:var(--text-base);color:rgba(255,255,255,.8);margin-bottom:var(--space-8);line-height:1.65}
+.cta-form{display:flex;flex-direction:column;gap:var(--space-3);max-width:400px;margin:0 auto}
+.cta-input{padding:var(--space-3) var(--space-5);border-radius:var(--radius-full);border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:var(--text-sm);backdrop-filter:blur(8px)}
+.cta-input::placeholder{color:rgba(255,255,255,.55)}
+.cta-input:focus{outline:none;border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.15)}
+.btn-white{background:#fff;color:var(--color-primary);width:100%;justify-content:center}
+.btn-white:hover{background:rgba(255,255,255,.92);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.cta-note{font-size:var(--text-xs);color:rgba(255,255,255,.6);margin-top:var(--space-3)}
+
+/* FOOTER */
+.footer{background:var(--color-text);color:rgba(255,255,255,.6);padding-block:var(--space-10)}
+.footer-inner{max-width:var(--content-wide);margin:0 auto;padding-inline:var(--space-6);display:flex;flex-wrap:wrap;gap:var(--space-6);align-items:center;justify-content:space-between}
+.footer-logo{font-family:var(--font-display);font-weight:700;color:#fff;font-size:var(--text-lg)}
+.footer-links{display:flex;gap:var(--space-6);flex-wrap:wrap}
+.footer-link{color:rgba(255,255,255,.5);text-decoration:none;font-size:var(--text-xs)}
+.footer-link:hover{color:#fff}
+.footer-copy{font-size:var(--text-xs);width:100%}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:var(--space-4)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--color-surface-2);border-radius:var(--radius-2xl);padding:var(--space-8);max-width:480px;width:100%;box-shadow:var(--shadow-lg);position:relative}
+.modal-close{position:absolute;top:var(--space-4);right:var(--space-4);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--color-text-muted)}
+.modal-close:hover{background:var(--color-surface-offset);color:var(--color-text)}
+.modal-title{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-2)}
+.modal-sub{font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-6);line-height:1.65}
+.form-group{display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-4)}
+.form-label{font-size:var(--text-sm);font-weight:500}
+.form-input,.form-select{padding:var(--space-3) var(--space-4);border-radius:var(--radius-lg);border:1.5px solid var(--color-border);background:var(--color-bg);font-size:var(--text-sm);color:var(--color-text);width:100%}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--color-primary)}
+.form-note{font-size:var(--text-xs);color:var(--color-text-muted);margin-top:var(--space-3)}
+.success-msg{display:none;text-align:center;padding:var(--space-6)}
+.success-msg.show{display:block}
+.success-icon{font-size:2.5rem;margin-bottom:var(--space-4)}
+.success-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;margin-bottom:var(--space-2)}
+.success-text{font-size:var(--text-sm);color:var(--color-text-muted)}
+
+/* ANIMATIONS */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
+.fade-in.visible{opacity:1;transform:none}
+
+/* CONTAINER */
+.container{max-width:var(--content-wide);margin:0 auto;padding-inline:var(--space-6)}
+.container-narrow{max-width:var(--content-default);margin:0 auto;padding-inline:var(--space-6)}
+
+/* DARK MODE */
+[data-theme=dark]{
+--color-bg:#141410;--color-surface:#1a1916;--color-surface-2:#1e1d1b;
+--color-surface-offset:#222018;--color-border:#2e2c28;--color-divider:#272520;
+--color-text:#d4d2cc;--color-text-muted:#78766e;--color-primary:#4a9e66;
+--color-primary-hover:#3d8856;--color-primary-light:#1a2e22;
+--color-accent:#3d7a5e;--color-accent-light:#1a2a22;
+--shadow-sm:0 1px 3px rgba(0,0,0,.25);--shadow-md:0 4px 12px rgba(0,0,0,.35);
+--shadow-lg:0 12px 32px rgba(0,0,0,.45)
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" role="navigation" aria-label="Основная навигация">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo" aria-label="Свой Повар — на главную">
+      <div class="nav-logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 2.4 1.1 4.5 2.8 5.9L7 20h10l-.8-5.1C17.9 13.5 19 11.4 19 9c0-4-3-7-7-7z"/><path d="M9 21h6"/></svg>
+      </div>
+      <div class="nav-logo-text">
+        <span class="nav-logo-name">Свой Повар</span>
+        <span class="nav-logo-sub">сервис домашней еды</span>
+      </div>
+    </a>
+    <ul class="nav-links" role="list">
+      <li><a href="#chefs" class="nav-link">Повара</a></li>
+      <li><a href="#menu" class="nav-link">Меню</a></li>
+      <li><a href="#how" class="nav-link">Как работает</a></li>
+      <li><a href="#reviews" class="nav-link">Отзывы</a></li>
+    </ul>
+    <a href="#cta" class="nav-cta" aria-label="Попробовать сервис">Попробовать →</a>
+    <button class="nav-theme" data-theme-toggle aria-label="Переключить тему">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<main>
+<!-- HERO -->
+<section class="hero" aria-labelledby="hero-title">
+  <img src="https://user-gen-media-assets.s3.amazonaws.com/seedream_images/6d6234f5-fd8b-4d1b-ad96-ada53da88adb.png" alt="Повар бережно подаёт дымящийся борщ на деревянный стол при свечах" class="hero-bg" width="1440" height="720" loading="eager">
+  <div class="hero-overlay" aria-hidden="true"></div>
+  <div class="hero-content">
+                <div class="hero-badge"><span class="hero-badge-dot" aria-hidden="true"></span>Домашняя еда с заботой</div>
+    <h1 class="hero-title" id="hero-title">Домашняя еда от <em>живого повара</em> — под ваши цели</h1>
+    <p class="hero-sub">Укажите параметры, аллергии и вкусы — повар приготовит специально для вас и привезёт горячим в тот же день.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="openModal()" aria-label="Войти в список первых">Войти в список первых</button>
+      <a href="#how" class="btn btn-ghost">Как это работает</a>
+    </div>
+    <div class="hero-trust" role="list" aria-label="Ключевые показатели">
+      <div class="hero-trust-item" role="listitem"><span class="hero-trust-num">{{ visit_count }}</span><span class="hero-trust-label">знают нас</span></div>
+      <div class="hero-trust-item" role="listitem"><span class="hero-trust-num">{{ order_count }}</span><span class="hero-trust-label">заказов оформлено</span></div>
+      <div class="hero-trust-item" role="listitem"><span class="hero-trust-num">100%</span><span class="hero-trust-label">проверенные повара</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section-how" id="how" aria-labelledby="how-title">
+  <div class="container-narrow">
+    <div class="section-header">
+      <p class="section-label">Как это работает</p>
+      <h2 class="section-title" id="how-title">Три шага до домашней еды</h2>
+      <p class="section-sub">Выберите блюдо и повара, укажите пожелания, получите горячую еду</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-step fade-in">
+        <div class="how-step-num" aria-hidden="true">1</div>
+        <h3 class="how-step-title">Выберите блюдо и повара</h3>
+        <p class="how-step-text">Просматривайте меню, фильтруйте по КБЖУ и целям питания. Читайте профили поваров и реальные отзывы.</p>
+      </div>
+      <div class="how-step fade-in">
+        <div class="how-step-num" aria-hidden="true">2</div>
+        <h3 class="how-step-title">Укажите ваши параметры</h3>
+        <p class="how-step-text">Выберите блюдо, укажите цели питания — повар приготовит лично для вас и привезёт горячим.</p>
+      </div>
+      <div class="how-step fade-in">
+        <div class="how-step-num" aria-hidden="true">3</div>
+        <h3 class="how-step-title">Согласуйте детали</h3>
+        <p class="how-step-text">Аллергии, любимые продукты, размер порций — повар учтёт всё и согласует лично с вами перед готовкой.</p>
+      </div>
+      <div class="how-step fade-in">
+        <div class="how-step-num" aria-hidden="true">4</div>
+        <h3 class="how-step-title">Получите свежую еду</h3>
+        <p class="how-step-text">Курьер доставит свежеприготовленное блюдо прямо к вашей двери в тот же день.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHEFS -->
+<section class="section-chefs" id="chefs" aria-labelledby="chefs-title">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">Наши повара</p>
+      <h2 class="section-title" id="chefs-title">Познакомьтесь с теми, кто готовит</h2>
+      <p class="section-sub">Проверенные домашние повара с реальными отзывами — не ресторан, а живые люди рядом с вами</p>
+    </div>
+    <div class="chefs-grid">
+      <article class="chef-card fade-in">
+        <div class="chef-photo-wrap">
+          <img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/2eddba5f-3895-4baf-a53b-8e719ccf05bc.png" alt="Анна Соколова — домашний повар, специализация: русская кухня и диетическое питание" class="chef-photo" width="480" height="360" loading="lazy">
+          <div class="chef-badge"><span class="chef-badge-star">★</span><span class="chef-badge-rating">4.9</span><span class="chef-badge-count">127 заказов</span></div>
+        </div>
+        <div class="chef-info">
+          <h3 class="chef-name">Анна Соколова</h3>
+          <p class="chef-meta">Москва, Хамовники · <span>На платформе с марта 2025</span></p>
+          <div class="chef-tags">
+            <span class="chef-tag">Домашняя кухня</span>
+            <span class="chef-tag">Супы и борщи</span>
+            <span class="chef-tag chef-tag-accent">Диетическое питание</span>
+          </div>
+          <blockquote class="chef-quote">«Готовлю так, как кормлю свою семью — без усилителей. Каждое блюдо с любовью.»</blockquote>
+        </div>
+      </article>
+      <article class="chef-card fade-in">
+        <div class="chef-photo-wrap">
+          <img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/883b2c81-4713-41b8-ac26-f3654cf58284.png" alt="Игорь Ковалёв — домашний повар, специализация: спортивное питание и высокобелковые рационы" class="chef-photo" width="480" height="360" loading="lazy">
+          <div class="chef-badge"><span class="chef-badge-star">★</span><span class="chef-badge-rating">4.8</span><span class="chef-badge-count">93 заказа</span></div>
+        </div>
+        <div class="chef-info">
+          <h3 class="chef-name">Игорь Ковалёв</h3>
+          <p class="chef-meta">Москва, Митино · <span>На платформе с января 2025</span></p>
+          <div class="chef-tags">
+            <span class="chef-tag chef-tag-accent">Спортивное питание</span>
+            <span class="chef-tag">Высокий белок</span>
+            <span class="chef-tag">Рационы на неделю</span>
+          </div>
+          <blockquote class="chef-quote">«Просто скажите цель — похудение или набор — и я подберу рацион под ваш день.»</blockquote>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section class="section-menu" id="menu" aria-labelledby="menu-title">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">Меню недели</p>
+      <h2 class="section-title" id="menu-title">Каждое блюдо готовится свежим в день доставки</h2>
+      <p class="section-sub">Меню обновляется еженедельно — сезонные продукты и разнообразие КБЖУ</p>
+    </div>
+    <div class="menu-filter" role="group" aria-label="Фильтры меню">
+      <button class="menu-filter-btn active" onclick="filterMenu('all',this)">Все блюда</button>
+      <button class="menu-filter-btn" onclick="filterMenu('diet',this)">Диетическое</button>
+      <button class="menu-filter-btn" onclick="filterMenu('sport',this)">Спортивное</button>
+      <button class="menu-filter-btn" onclick="filterMenu('classic',this)">Классика</button>
+    </div>
+    <div class="menu-grid">
+      <article class="dish-card fade-in" data-category="classic">
+        <div class="dish-img-wrap"><img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/36820177-0c0e-4b94-ba9c-8252c9d9b8ab.png" alt="Борщ с лососем и авокадо" class="dish-img" width="400" height="300" loading="lazy"></div>
+        <div class="dish-info">
+          <h3 class="dish-name">Борщ с лососем</h3>
+          <p class="dish-macros">Б 28г · Ж 14г · У 32г · 380 ккал</p>
+          <div class="dish-footer"><span class="dish-price">от 490 ₽</span><span class="dish-chef">пов. Анна</span></div>
+        </div>
+      </article>
+      <article class="dish-card fade-in" data-category="classic">
+        <div class="dish-img-wrap"><img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/9e2a4729-d488-49a4-924a-fc947a298d98.png" alt="Торт Медовик домашний" class="dish-img" width="400" height="300" loading="lazy"></div>
+        <div class="dish-info">
+          <h3 class="dish-name">Торт Медовик</h3>
+          <p class="dish-macros">Б 7г · Ж 22г · У 58г · 460 ккал</p>
+          <div class="dish-footer"><span class="dish-price">от 650 ₽</span><span class="dish-chef">пов. Мария</span></div>
+        </div>
+      </article>
+      <article class="dish-card fade-in" data-category="sport">
+        <div class="dish-img-wrap"><img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/e8e1b1d1-3be8-4ce6-93ff-958fa4bda5d3.png" alt="Куриная грудка с брокколи" class="dish-img" width="400" height="300" loading="lazy"></div>
+        <div class="dish-info">
+          <h3 class="dish-name">Куриная грудка с брокколи</h3>
+          <p class="dish-macros">Б 46г · Ж 8г · У 12г · 300 ккал</p>
+          <div class="dish-footer"><span class="dish-price">от 520 ₽</span><span class="dish-chef">пов. Игорь</span></div>
+        </div>
+      </article>
+      <article class="dish-card fade-in" data-category="classic">
+        <div class="dish-img-wrap"><img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/ea242535-4695-458a-9509-8c35469d9697.png" alt="Спагетти Карбонара по-домашнему" class="dish-img" width="400" height="300" loading="lazy"></div>
+        <div class="dish-info">
+          <h3 class="dish-name">Спагетти Карбонара</h3>
+          <p class="dish-macros">Б 22г · Ж 28г · У 62г · 580 ккал</p>
+          <div class="dish-footer"><span class="dish-price">от 480 ₽</span><span class="dish-chef">пов. Анна</span></div>
+        </div>
+      </article>
+      <article class="dish-card fade-in" data-category="classic">
+        <div class="dish-img-wrap"><img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/880262c3-1cb4-41d2-95da-ca30d6636653.png" alt="Лазанья Болоньезе классическая" class="dish-img" width="400" height="300" loading="lazy"></div>
+        <div class="dish-info">
+          <h3 class="dish-name">Лазанья Болоньезе</h3>
+          <p class="dish-macros">Б 26г · Ж 18г · У 48г · 460 ккал</p>
+          <div class="dish-footer"><span class="dish-price">от 590 ₽</span><span class="dish-chef">пов. Анна</span></div>
+        </div>
+      </article>
+      <article class="dish-card fade-in" data-category="classic">
+        <div class="dish-img-wrap"><img src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/1adca0ce-8ce1-4da2-9ece-16ddab724eed.png" alt="Пирожки с мясом домашние" class="dish-img" width="400" height="300" loading="lazy"></div>
+        <div class="dish-info">
+          <h3 class="dish-name">Пирожки с мясом</h3>
+          <p class="dish-macros">Б 14г · Ж 16г · У 38г · 340 ккал</p>
+          <div class="dish-footer"><span class="dish-price">от 390 ₽</span><span class="dish-chef">пов. Ольга</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="section-why" aria-labelledby="why-title">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">Наши преимущества</p>
+      <h2 class="section-title" id="why-title">Почему Свой Повар</h2>
+      <p class="section-sub">Не ресторан и не рацион — живая домашняя еда под ваши цели</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card fade-in">
+        <div class="why-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <h3 class="why-title">Персонализация под вас</h3>
+        <p class="why-text">Укажите цели, ограничения и предпочтения — повар приготовит блюдо именно для вас, а не для «среднестатистического» клиента.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z"/></svg>
+        </div>
+        <h3 class="why-title">Верифицированные повара</h3>
+        <p class="why-text">Каждый повар проверен: кухня, санитарные условия, уровень приготовления. Вы знаете, кто готовит вашу еду.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+                <h3 class="why-title">Гарантия качества</h3>
+                <p class="why-text">Каждый заказ защищён: верифицированный повар, гарантия свежести и возврат средств при любых вопросах.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3 class="why-title">Свежее в день доставки</h3>
+        <p class="why-text">Повар готовит после вашего заказа, не заранее. Курьер доставляет горячим в день приготовления.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section-reviews" id="reviews" aria-labelledby="reviews-title">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">Отзывы</p>
+      <h2 class="section-title" id="reviews-title">Что говорят первые клиенты</h2>
+      <p class="section-sub">Реальные отзывы участников тест-запуска</p>
+    </div>
+    <div class="reviews-grid">
+      <div class="review-card fade-in">
+        <div class="review-stars" aria-label="Оценка 5 из 5">★★★★★</div>
+        <p class="review-text">«Заказала борщ у Анны — муж спросил, не я ли сварила. Порция большая, свежая, вкусная. Беру каждую неделю.»</p>
+        <div class="review-author">
+          <div class="review-avatar" aria-hidden="true">Е</div>
+          <div><p class="review-name">Екатерина</p><p class="review-date">Хамовники, апрель 2025</p></div>
+        </div>
+      </div>
+      <div class="review-card fade-in">
+        <div class="review-stars" aria-label="Оценка 5 из 5">★★★★★</div>
+        <p class="review-text">«Игорь составил мне рацион под похудение: 1800 ккал, высокий белок. Минус 3 кг за месяц — и ни одного голодного дня.»</p>
+        <div class="review-author">
+          <div class="review-avatar" aria-hidden="true">А</div>
+          <div><p class="review-name">Алексей</p><p class="review-date">Митино, март 2025</p></div>
+        </div>
+      </div>
+      <div class="review-card fade-in">
+        <div class="review-stars" aria-label="Оценка 5 из 5">★★★★★</div>
+        <p class="review-text">«Нашла Марию по пирогам — такого теста нигде не пробовала. Беру на праздники и просто так. Уже 8 заказов!»</p>
+        <div class="review-author">
+          <div class="review-avatar" aria-hidden="true">М</div>
+          <div><p class="review-name">Мария</p><p class="review-date">Замоскворечье, апрель 2025</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-cta" id="cta" aria-labelledby="cta-title">
+  <div class="cta-inner">
+    <p class="cta-label">Ранний доступ</p>
+    <h2 class="cta-title" id="cta-title">Оставьте заявку — подберём повара под ваши цели</h2>
+    <p class="cta-sub">Оставьте заявку — мы свяжемся с вами в течение 30 минут и подберём повара под ваши цели и предпочтения.</p>
+    <form class="cta-form" action="/submit" method="post" novalidate aria-label="Форма записи">
+      <input type="hidden" name="form_type" value="cta">
+      <input class="cta-input" type="text" name="name" placeholder="Ваше имя" required autocomplete="given-name" aria-label="Имя">
+      <input class="cta-input" type="tel" name="phone" placeholder="Номер телефона" required autocomplete="tel" aria-label="Телефон">
+      <button type="submit" class="btn btn-white">Войти в список первых</button>
+    </form>
+    <p class="cta-note">Нажимая кнопку, вы соглашаетесь с обработкой персональных данных</p>
+  </div>
+</section>
+</main>
+
+<footer class="footer" role="contentinfo">
+  <div class="footer-inner">
+    <span class="footer-logo">Свой Повар</span>
+    <nav class="footer-links" aria-label="Ссылки в подвале">
+      <a href="#" class="footer-link">Политика конфиденциальности</a>
+      <a href="#" class="footer-link">Пользовательское соглашение</a>
+      <a href="#" class="footer-link">Контакты</a>
+    </nav>
+            <p class="footer-copy">© 2025 Свой Повар · Сервис домашней еды</p>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()" aria-label="Закрыть">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div id="modal-form-content">
+      <h2 class="modal-title" id="modal-title">Войти в список первых</h2>
+      <p class="modal-sub">Оставьте контакты — менеджер свяжется с вами в течение 30 минут и подберёт повара.</p>
+      <form action="/submit" method="post" novalidate>
+        <input type="hidden" name="form_type" value="modal">
+        <div class="form-group">
+          <label class="form-label" for="modal-name">Ваше имя</label>
+          <input class="form-input" type="text" id="modal-name" name="name" placeholder="Как вас зовут?" required autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-phone">Телефон</label>
+          <input class="form-input" type="tel" id="modal-phone" name="phone" placeholder="+7 (___) ___-__-__" required autocomplete="tel">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-district">Район Москвы</label>
+          <select class="form-select" id="modal-district" name="district">
+            <option value="">Выберите район</option>
+            <option>ЦАО</option><option>САО</option><option>СВАО</option>
+            <option>ВАО</option><option>ЮВАО</option><option>ЮАО</option>
+            <option>ЮЗАО</option><option>ЗАО</option><option>СЗАО</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-diet">Тип питания</label>
+          <select class="form-select" id="modal-diet" name="diet">
+            <option value="">Выберите тип</option>
+            <option>Обычное</option>
+            <option>ЗОЖ / правильное питание</option>
+            <option>Спортпит / высокий белок</option>
+            <option>Диета / похудение</option>
+            <option>Аллергия / ограничения</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:var(--space-3) var(--space-6)">Отправить заявку</button>
+        <p class="form-note">Проверьте телефон — менеджер свяжется в течение 30 минут</p>
+      </form>
+    </div>
+    <div class="success-msg" id="modal-success" aria-live="polite">
+      <div class="success-icon" aria-hidden="true">🎉</div>
+      <h3 class="success-title">Вы в списке первых!</h3>
+      <p class="success-text">Менеджер свяжется с вами в течение 30 минут и подберёт повара. Проверьте телефон.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const t=document.querySelector('[data-theme-toggle]'),r=document.documentElement;
+  let d=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+  r.setAttribute('data-theme',d);
+  if(t)t.addEventListener('click',()=>{
+    d=d==='dark'?'light':'dark';
+    r.setAttribute('data-theme',d);
+    t.setAttribute('aria-label','Переключить тему');
+    t.innerHTML=d==='dark'
+      ?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      :'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+  });
+})();
+
+function openModal(){document.getElementById('modal').classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(){document.getElementById('modal').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+
+function handleModalSubmit(e){
+  e.preventDefault();
+  document.getElementById('modal-form-content').style.display='none';
+  document.getElementById('modal-success').classList.add('show');
+  setTimeout(()=>{closeModal();document.getElementById('modal-form-content').style.display='';document.getElementById('modal-success').classList.remove('show');},3500);
+}
+
+function handleCtaSubmit(e){
+  e.preventDefault();
+  openModal();
+}
+
+function filterMenu(cat,btn){
+  document.querySelectorAll('.menu-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.dish-card').forEach(c=>{
+    if(cat==='all'||c.dataset.category===cat){c.style.display='';} else{c.style.display='none';}
+  });
+}
+
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target);}});
+},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+</script>
+</body>
+</html>
