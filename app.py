@@ -20,21 +20,51 @@ def get_conn():
     return conn
 
 
+def column_exists(conn, table_name: str, column_name: str) -> bool:
+    cur = conn.cursor()
+    cur.execute(f"PRAGMA table_info({table_name})")
+    return any(row[1] == column_name for row in cur.fetchall())
+
+
 def init_db():
     conn = get_conn()
     cur = conn.cursor()
+
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS leads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             phone TEXT NOT NULL,
-            district TEXT,
-            diet TEXT,
             created_at TEXT NOT NULL
         )
         """
     )
+
+    has_district = column_exists(conn, "leads", "district")
+    has_diet = column_exists(conn, "leads", "diet")
+
+    if has_district or has_diet:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS leads_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+        cur.execute(
+            """
+            INSERT INTO leads_new (id, name, phone, created_at)
+            SELECT id, name, phone, created_at
+            FROM leads
+            """
+        )
+        cur.execute("DROP TABLE leads")
+        cur.execute("ALTER TABLE leads_new RENAME TO leads")
+
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS counters (
@@ -45,6 +75,7 @@ def init_db():
     )
     cur.execute("INSERT OR IGNORE INTO counters (key, value) VALUES ('visits', ?)", (DEFAULT_VISIT_COUNT,))
     cur.execute("INSERT OR IGNORE INTO counters (key, value) VALUES ('orders', ?)", (DEFAULT_ORDER_COUNT,))
+
     conn.commit()
     conn.close()
 
@@ -77,12 +108,18 @@ def index():
     return render_template("klient-no-x5.html", visit_count=visit_count, order_count=order_count)
 
 
+@app.route("/api/counters")
+def api_counters():
+    return jsonify({
+        "visits": get_counter("visits", DEFAULT_VISIT_COUNT),
+        "orders": get_counter("orders", DEFAULT_ORDER_COUNT),
+    })
+
+
 @app.route("/submit", methods=["POST"])
 def submit():
     name = request.form.get("name", "").strip()
     phone = request.form.get("phone", "").strip()
-    district = request.form.get("district", "").strip()
-    diet = request.form.get("diet", "").strip()
 
     wants_json = (
         request.headers.get("X-Requested-With") == "XMLHttpRequest"
@@ -98,10 +135,10 @@ def submit():
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT INTO leads (name, phone, district, diet, created_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO leads (name, phone, created_at)
+        VALUES (?, ?, ?)
         """,
-        (name, phone, district, diet, datetime.utcnow().isoformat())
+        (name, phone, datetime.utcnow().isoformat())
     )
     cur.execute("INSERT OR IGNORE INTO counters (key, value) VALUES ('orders', ?)", (DEFAULT_ORDER_COUNT,))
     cur.execute("UPDATE counters SET value = value + 1 WHERE key = 'orders'")
@@ -127,7 +164,7 @@ def admin_leads():
     cur = conn.cursor()
     cur.execute(
         """
-        SELECT id, name, phone, district, diet, created_at
+        SELECT id, name, phone, created_at
         FROM leads
         ORDER BY id DESC
         """
@@ -145,22 +182,20 @@ def admin_leads():
                 <td>{lead['id']}</td>
                 <td>{lead['name']}</td>
                 <td>{lead['phone']}</td>
-                <td>{lead['district'] or ''}</td>
-                <td>{lead['diet'] or ''}</td>
                 <td>{lead['created_at']}</td>
             </tr>
         """)
 
     return f"""
     <!doctype html>
-    <html lang=\"ru\">
+    <html lang="ru">
     <head>
-        <meta charset=\"utf-8\">
+        <meta charset="utf-8">
         <title>Заявки</title>
-        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body {{ font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; color: #222; }}
-            .wrap {{ max-width: 1200px; margin: 0 auto; background: white; padding: 24px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }}
+            .wrap {{ max-width: 1100px; margin: 0 auto; background: white; padding: 24px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }}
             h1 {{ margin-top: 0; }}
             .meta {{ margin-bottom: 20px; color: #555; display: flex; gap: 24px; flex-wrap: wrap; }}
             table {{ width: 100%; border-collapse: collapse; background: white; }}
@@ -170,11 +205,11 @@ def admin_leads():
         </style>
     </head>
     <body>
-        <div class=\"wrap\">
+        <div class="wrap">
             <h1>Заявки с сайта</h1>
-            <div class=\"meta\">
+            <div class="meta">
                 <div>Всего визитов: <strong>{visit_count}</strong></div>
-                <div>Всего заказов: <strong>{order_count}</strong></div>
+                <div>Всего заявок по счетчику: <strong>{order_count}</strong></div>
                 <div>Реальных заявок в базе: <strong>{len(leads)}</strong></div>
             </div>
             <table>
@@ -183,13 +218,11 @@ def admin_leads():
                         <th>ID</th>
                         <th>Имя</th>
                         <th>Телефон</th>
-                        <th>Район</th>
-                        <th>Питание</th>
                         <th>Дата</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {''.join(rows) if rows else '<tr><td colspan="6">Пока нет заявок</td></tr>'}
+                    {''.join(rows) if rows else '<tr><td colspan="4">Пока нет заявок</td></tr>'}
                 </tbody>
             </table>
         </div>
