@@ -1,19 +1,14 @@
-from flask import Flask, render_template, request, redirect, url_for, Response
-from datetime import datetime
-from pathlib import Path
-import sqlite3
-import html
 import os
+import sqlite3
+from pathlib import Path
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify
 
 BASE_DIR = Path(__file__).resolve().parent
-TEMPLATES_DIR = BASE_DIR / "templates"
 DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "data.db")))
-ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "my-super-secret-123")
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me-please")
 
-INITIAL_VISITS = 70812
-INITIAL_ORDERS = 2213
-
-app = Flask(__name__, template_folder=str(TEMPLATES_DIR))
+app = Flask(__name__, template_folder="templates")
 
 
 def get_conn():
@@ -23,192 +18,209 @@ def get_conn():
 
 
 def init_db():
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with get_conn() as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS leads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                created_at TEXT,
-                form_type TEXT,
-                name TEXT NOT NULL,
-                phone TEXT NOT NULL,
-                district TEXT,
-                diet TEXT
-            )
-        """)
-        conn.commit()
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            district TEXT,
+            diet TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS counters (
+            key TEXT PRIMARY KEY,
+            value INTEGER NOT NULL DEFAULT 0
+        )
+    """)
+
+    cur.execute("""
+        INSERT OR IGNORE INTO counters (key, value)
+        VALUES ('visits', 127)
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def increment_visits():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("UPDATE counters SET value = value + 1 WHERE key = 'visits'")
+    conn.commit()
+    cur.execute("SELECT value FROM counters WHERE key = 'visits'")
+    value = cur.fetchone()["value"]
+    conn.close()
+    return value
+
+
+def get_visit_count():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT value FROM counters WHERE key = 'visits'")
+    row = cur.fetchone()
+    conn.close()
+    return row["value"] if row else 127
 
 
 def get_orders_count():
-    with get_conn() as conn:
-        row = conn.execute("SELECT COUNT(*) AS cnt FROM leads").fetchone()
-        return INITIAL_ORDERS + (row["cnt"] if row else 0)
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) AS cnt FROM leads")
+    row = cur.fetchone()
+    conn.close()
+    return row["cnt"] if row else 0
 
 
-def esc(value):
-    return html.escape(str(value if value is not None else ""))
-
-
-init_db()
-
-
-@app.route("/", methods=["GET"])
+@app.route("/")
 def index():
+    visit_count = increment_visits()
+    order_count = get_orders_count()
     return render_template(
         "klient-no-x5.html",
-        visit_count=INITIAL_VISITS,
-        order_count=get_orders_count(),
+        visit_count=visit_count,
+        order_count=order_count
     )
 
 
 @app.route("/submit", methods=["POST"])
 def submit():
-    form_type = (request.form.get("form_type") or "unknown").strip()
-    name = (request.form.get("name") or "").strip()
-    phone = (request.form.get("phone") or "").strip()
-    district = (request.form.get("district") or "").strip()
-    diet = (request.form.get("diet") or "").strip()
+    name = request.form.get("name", "").strip()
+    phone = request.form.get("phone", "").strip()
+    district = request.form.get("district", "").strip()
+    diet = request.form.get("diet", "").strip()
 
     if not name or not phone:
-        return redirect(url_for("index"))
+        return jsonify({"ok": False, "error": "Заполните имя и телефон"}), 400
 
-    with get_conn() as conn:
-        conn.execute("""
-            INSERT INTO leads (created_at, form_type, name, phone, district, diet)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            datetime.now().isoformat(timespec="seconds"),
-            form_type,
-            name,
-            phone,
-            district,
-            diet,
-        ))
-        conn.commit()
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT INTO leads (name, phone, district, diet, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (name, phone, district, diet, datetime.utcnow().isoformat())
+    )
+    conn.commit()
+    conn.close()
 
-    return redirect(url_for("index"))
+    return jsonify({"ok": True})
 
 
-@app.route("/admin/leads", methods=["GET"])
+@app.route("/admin/leads")
 def admin_leads():
     token = request.args.get("token", "")
     if token != ADMIN_TOKEN:
-        return Response("Forbidden", status=403)
+        return "Forbidden", 403
 
-    with get_conn() as conn:
-        rows = conn.execute("""
-            SELECT id, created_at, form_type, name, phone, district, diet
-            FROM leads
-            ORDER BY id DESC
-        """).fetchall()
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, name, phone, district, diet, created_at
+        FROM leads
+        ORDER BY id DESC
+    """)
+    leads = cur.fetchall()
+    visit_count = get_visit_count()
+    order_count = len(leads)
+    conn.close()
 
-    rows_html = "".join(
-        f"""
-        <tr>
-          <td>{esc(row["id"])}</td>
-          <td>{esc(row["created_at"])}</td>
-          <td>{esc(row["form_type"])}</td>
-          <td>{esc(row["name"])}</td>
-          <td>{esc(row["phone"])}</td>
-          <td>{esc(row["district"])}</td>
-          <td>{esc(row["diet"])}</td>
-        </tr>
-        """
-        for row in rows
-    )
+    rows = []
+    for lead in leads:
+        rows.append(f"""
+            <tr>
+                <td>{lead['id']}</td>
+                <td>{lead['name']}</td>
+                <td>{lead['phone']}</td>
+                <td>{lead['district'] or ''}</td>
+                <td>{lead['diet'] or ''}</td>
+                <td>{lead['created_at']}</td>
+            </tr>
+        """)
 
-    page = f"""
+    html = f"""
     <!doctype html>
     <html lang="ru">
     <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Заявки</title>
-      <style>
-        body {{
-          margin: 0;
-          font-family: Arial, sans-serif;
-          background: #f6f6f4;
-          color: #1a1a18;
-        }}
-        .wrap {{
-          max-width: 1280px;
-          margin: 0 auto;
-          padding: 24px;
-        }}
-        .top {{
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-          flex-wrap: wrap;
-          margin-bottom: 20px;
-        }}
-        .chip {{
-          background: #fff;
-          border: 1px solid rgba(0, 0, 0, .08);
-          border-radius: 12px;
-          padding: 10px 14px;
-        }}
-        .table-wrap {{
-          overflow: auto;
-          border: 1px solid rgba(0, 0, 0, .08);
-          border-radius: 16px;
-          background: #fff;
-        }}
-        table {{
-          width: 100%;
-          border-collapse: collapse;
-        }}
-        th, td {{
-          padding: 12px;
-          border-bottom: 1px solid rgba(0, 0, 0, .08);
-          text-align: left;
-          vertical-align: top;
-          font-size: 14px;
-          white-space: nowrap;
-        }}
-        th {{
-          background: #f0eee9;
-          position: sticky;
-          top: 0;
-        }}
-      </style>
+        <meta charset="utf-8">
+        <title>Заявки</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                background: #f7f7f7;
+                color: #222;
+            }}
+            .wrap {{
+                max-width: 1200px;
+                margin: 0 auto;
+                background: white;
+                padding: 24px;
+                border-radius: 16px;
+                box-shadow: 0 8px 30px rgba(0,0,0,.08);
+            }}
+            h1 {{ margin-top: 0; }}
+            .meta {{
+                margin-bottom: 20px;
+                color: #555;
+                display: flex;
+                gap: 24px;
+                flex-wrap: wrap;
+            }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                background: white;
+            }}
+            th, td {{
+                border: 1px solid #ddd;
+                padding: 10px;
+                text-align: left;
+                font-size: 14px;
+                vertical-align: top;
+            }}
+            th {{ background: #f0f0f0; }}
+            tr:nth-child(even) {{ background: #fafafa; }}
+        </style>
     </head>
     <body>
-      <div class="wrap">
-        <div class="top">
-          <div>
-            <h1 style="margin:0 0 6px;">Все заявки</h1>
-            <div style="color:#6b6a66;">База: {esc(str(DB_PATH))}</div>
-          </div>
-          <div class="chip">Записей в БД: <strong>{len(rows)}</strong></div>
+        <div class="wrap">
+            <h1>Заявки с сайта</h1>
+            <div class="meta">
+                <div>Всего визитов: <strong>{visit_count}</strong></div>
+                <div>Всего заказов: <strong>{order_count}</strong></div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Телефон</th>
+                        <th>Район</th>
+                        <th>Питание</th>
+                        <th>Дата</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(rows) if rows else '<tr><td colspan="6">Пока нет заявок</td></tr>'}
+                </tbody>
+            </table>
         </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Дата</th>
-                <th>Форма</th>
-                <th>Имя</th>
-                <th>Телефон</th>
-                <th>Район</th>
-                <th>Тип питания</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows_html or '<tr><td colspan="7">Записей пока нет</td></tr>'}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </body>
     </html>
     """
-    return Response(page, mimetype="text/html; charset=utf-8")
+    return html
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    init_db()
+    app.run(host="0.0.0.0", port=5000, debug=True)
+else:
+    init_db()
