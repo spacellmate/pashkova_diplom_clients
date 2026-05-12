@@ -2,7 +2,6 @@ import os
 import sqlite3
 from pathlib import Path
 from datetime import datetime
-
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -24,8 +23,8 @@ def get_conn():
 def init_db():
     conn = get_conn()
     cur = conn.cursor()
-
-    cur.execute("""
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS leads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -34,67 +33,48 @@ def init_db():
             diet TEXT,
             created_at TEXT NOT NULL
         )
-    """)
-
-    cur.execute("""
+        """
+    )
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS counters (
             key TEXT PRIMARY KEY,
             value INTEGER NOT NULL DEFAULT 0
         )
-    """)
-
-    cur.execute(
-        "INSERT OR IGNORE INTO counters (key, value) VALUES ('visits', ?)",
-        (DEFAULT_VISIT_COUNT,)
+        """
     )
-
+    cur.execute("INSERT OR IGNORE INTO counters (key, value) VALUES ('visits', ?)", (DEFAULT_VISIT_COUNT,))
+    cur.execute("INSERT OR IGNORE INTO counters (key, value) VALUES ('orders', ?)", (DEFAULT_ORDER_COUNT,))
     conn.commit()
     conn.close()
 
 
-def increment_visits():
+def get_counter(key: str, default: int) -> int:
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("UPDATE counters SET value = value + 1 WHERE key = 'visits'")
+    cur.execute("SELECT value FROM counters WHERE key = ?", (key,))
+    row = cur.fetchone()
+    conn.close()
+    return row["value"] if row else default
+
+
+def increment_counter(key: str, default: int) -> int:
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("INSERT OR IGNORE INTO counters (key, value) VALUES (?, ?)", (key, default))
+    cur.execute("UPDATE counters SET value = value + 1 WHERE key = ?", (key,))
     conn.commit()
-    cur.execute("SELECT value FROM counters WHERE key = 'visits'")
+    cur.execute("SELECT value FROM counters WHERE key = ?", (key,))
     row = cur.fetchone()
     conn.close()
-    return row["value"] if row else DEFAULT_VISIT_COUNT
-
-
-def get_visit_count():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT value FROM counters WHERE key = 'visits'")
-    row = cur.fetchone()
-    conn.close()
-    return row["value"] if row else DEFAULT_VISIT_COUNT
-
-
-def get_real_leads_count():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) AS cnt FROM leads")
-    row = cur.fetchone()
-    conn.close()
-    return row["cnt"] if row else 0
-
-
-def get_display_order_count():
-    real_count = get_real_leads_count()
-    return max(DEFAULT_ORDER_COUNT, real_count)
+    return row["value"] if row else default
 
 
 @app.route("/")
 def index():
-    visit_count = increment_visits()
-    order_count = get_display_order_count()
-    return render_template(
-        "klient-no-x5.html",
-        visit_count=visit_count,
-        order_count=order_count
-    )
+    visit_count = increment_counter("visits", DEFAULT_VISIT_COUNT)
+    order_count = get_counter("orders", DEFAULT_ORDER_COUNT)
+    return render_template("klient-no-x5.html", visit_count=visit_count, order_count=order_count)
 
 
 @app.route("/submit", methods=["POST"])
@@ -104,10 +84,13 @@ def submit():
     district = request.form.get("district", "").strip()
     diet = request.form.get("diet", "").strip()
 
-    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    wants_json = (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or "application/json" in request.headers.get("Accept", "")
+    )
 
     if not name or not phone:
-        if is_ajax:
+        if wants_json:
             return jsonify({"ok": False, "error": "Заполните имя и телефон"}), 400
         return redirect(url_for("index"))
 
@@ -120,12 +103,17 @@ def submit():
         """,
         (name, phone, district, diet, datetime.utcnow().isoformat())
     )
+    cur.execute("INSERT OR IGNORE INTO counters (key, value) VALUES ('orders', ?)", (DEFAULT_ORDER_COUNT,))
+    cur.execute("UPDATE counters SET value = value + 1 WHERE key = 'orders'")
     conn.commit()
+    cur.execute("SELECT value FROM counters WHERE key = 'orders'")
+    order_row = cur.fetchone()
     conn.close()
 
-    if is_ajax:
-        return jsonify({"ok": True})
+    order_count = order_row["value"] if order_row else DEFAULT_ORDER_COUNT
 
+    if wants_json:
+        return jsonify({"ok": True, "order_count": order_count})
     return redirect(url_for("index"))
 
 
@@ -137,16 +125,18 @@ def admin_leads():
 
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT id, name, phone, district, diet, created_at
         FROM leads
         ORDER BY id DESC
-    """)
+        """
+    )
     leads = cur.fetchall()
     conn.close()
 
-    visit_count = get_visit_count()
-    order_count = get_display_order_count()
+    visit_count = get_counter("visits", DEFAULT_VISIT_COUNT)
+    order_count = get_counter("orders", DEFAULT_ORDER_COUNT)
 
     rows = []
     for lead in leads:
@@ -161,56 +151,28 @@ def admin_leads():
             </tr>
         """)
 
-    html = f"""
+    return f"""
     <!doctype html>
-    <html lang="ru">
+    <html lang=\"ru\">
     <head>
-        <meta charset="utf-8">
+        <meta charset=\"utf-8\">
         <title>Заявки</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
         <style>
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 40px;
-                background: #f7f7f7;
-                color: #222;
-            }}
-            .wrap {{
-                max-width: 1200px;
-                margin: 0 auto;
-                background: white;
-                padding: 24px;
-                border-radius: 16px;
-                box-shadow: 0 8px 30px rgba(0,0,0,.08);
-            }}
+            body {{ font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; color: #222; }}
+            .wrap {{ max-width: 1200px; margin: 0 auto; background: white; padding: 24px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }}
             h1 {{ margin-top: 0; }}
-            .meta {{
-                margin-bottom: 20px;
-                color: #555;
-                display: flex;
-                gap: 24px;
-                flex-wrap: wrap;
-            }}
-            table {{
-                width: 100%;
-                border-collapse: collapse;
-                background: white;
-            }}
-            th, td {{
-                border: 1px solid #ddd;
-                padding: 10px;
-                text-align: left;
-                font-size: 14px;
-                vertical-align: top;
-            }}
+            .meta {{ margin-bottom: 20px; color: #555; display: flex; gap: 24px; flex-wrap: wrap; }}
+            table {{ width: 100%; border-collapse: collapse; background: white; }}
+            th, td {{ border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; vertical-align: top; }}
             th {{ background: #f0f0f0; }}
             tr:nth-child(even) {{ background: #fafafa; }}
         </style>
     </head>
     <body>
-        <div class="wrap">
+        <div class=\"wrap\">
             <h1>Заявки с сайта</h1>
-            <div class="meta">
+            <div class=\"meta\">
                 <div>Всего визитов: <strong>{visit_count}</strong></div>
                 <div>Всего заказов: <strong>{order_count}</strong></div>
                 <div>Реальных заявок в базе: <strong>{len(leads)}</strong></div>
@@ -234,7 +196,6 @@ def admin_leads():
     </body>
     </html>
     """
-    return html
 
 
 if __name__ == "__main__":
