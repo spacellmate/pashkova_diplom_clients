@@ -2,7 +2,8 @@ import os
 import sqlite3
 from pathlib import Path
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify
+
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "data.db")))
@@ -57,9 +58,9 @@ def increment_visits():
     cur.execute("UPDATE counters SET value = value + 1 WHERE key = 'visits'")
     conn.commit()
     cur.execute("SELECT value FROM counters WHERE key = 'visits'")
-    value = cur.fetchone()["value"]
+    row = cur.fetchone()
     conn.close()
-    return value
+    return row["value"] if row else DEFAULT_VISIT_COUNT
 
 
 def get_visit_count():
@@ -103,8 +104,12 @@ def submit():
     district = request.form.get("district", "").strip()
     diet = request.form.get("diet", "").strip()
 
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
     if not name or not phone:
-        return jsonify({"ok": False, "error": "Заполните имя и телефон"}), 400
+        if is_ajax:
+            return jsonify({"ok": False, "error": "Заполните имя и телефон"}), 400
+        return redirect(url_for("index"))
 
     conn = get_conn()
     cur = conn.cursor()
@@ -118,7 +123,10 @@ def submit():
     conn.commit()
     conn.close()
 
-    return jsonify({"ok": True})
+    if is_ajax:
+        return jsonify({"ok": True})
+
+    return redirect(url_for("index"))
 
 
 @app.route("/admin/leads")
@@ -138,7 +146,7 @@ def admin_leads():
     conn.close()
 
     visit_count = get_visit_count()
-    order_count = max(DEFAULT_ORDER_COUNT, len(leads))
+    order_count = get_display_order_count()
 
     rows = []
     for lead in leads:
@@ -175,9 +183,7 @@ def admin_leads():
                 border-radius: 16px;
                 box-shadow: 0 8px 30px rgba(0,0,0,.08);
             }}
-            h1 {{
-                margin-top: 0;
-            }}
+            h1 {{ margin-top: 0; }}
             .meta {{
                 margin-bottom: 20px;
                 color: #555;
@@ -197,12 +203,8 @@ def admin_leads():
                 font-size: 14px;
                 vertical-align: top;
             }}
-            th {{
-                background: #f0f0f0;
-            }}
-            tr:nth-child(even) {{
-                background: #fafafa;
-            }}
+            th {{ background: #f0f0f0; }}
+            tr:nth-child(even) {{ background: #fafafa; }}
         </style>
     </head>
     <body>
